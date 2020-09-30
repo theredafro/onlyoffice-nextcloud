@@ -17,6 +17,30 @@
  *
  */
 
-namespace OCA\Onlyoffice\AppInfo;
+namespace OCA\Onlyoffice\Listeners;
 
-$app = \OC::$server->query(Application::class);
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventListener;
+
+use OCA\Onlyoffice\DirectEditor;
+
+class DirectEditorListener implements IEventListener {
+
+    /**
+     * DirectEditor
+     *
+     * @var DirectEditor
+     */
+    public $editor;
+
+    public function __construct(DirectEditor $editor) {
+		$this->editor = $editor;
+	}
+
+	public function handle(Event $event): void {
+		if (!$event instanceof RegisterDirectEditorEvent) {
+			return;
+		}
+		$event->register($this->editor);
+	}
+}
