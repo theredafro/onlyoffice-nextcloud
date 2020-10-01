@@ -29,6 +29,7 @@ use Psr\Container\ContainerInterface;
 
 use OCA\Viewer\Event\LoadViewer;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
+use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent;
 
 use OCA\Onlyoffice\AppConfig;
 use OCA\Onlyoffice\Controller\CallbackController;
@@ -73,7 +74,7 @@ class Application extends App implements IBootstrap {
         }
 
         $context->registerEventListener(LoadAdditionalScriptsEvent::class, FilesLoadListener::class);
-        $context->registerEventListener("OCA\Files_Sharing::loadAdditionalScripts", FilesSharingLoadListener::class);
+        $context->registerEventListener(BeforeTemplateRenderedEvent::class, FilesSharingLoadListener::class);
 
         $context->registerService('L10N', function (ContainerInterface $c) {
 			$server = $c->get(IServerContainer::class);
