@@ -96,3 +96,10 @@ body.onlyoffice-inline #content #app-content {
 .AscDesktopEditor #body-user #gallery-button {
     display: none;
 }
+.saveas-container {
+    display: flex;
+}
+#saveas-picker p {
+    margin-right: 10px;
+    padding-top: 10px;
+}

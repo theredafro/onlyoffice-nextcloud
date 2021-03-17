@@ -203,6 +203,56 @@
             });
     };
 
+    OCA.Onlyoffice.FileSaveAsClick = function (fileName, context) {
+        $.get(OC.filePath(OCA.Onlyoffice.AppName, "templates", "saveasPicker.html"), 
+            function (tmpl) {
+                var dialog = $(tmpl).octemplate({
+                    dialog_name: "saveas-picker",
+                    dialog_title: t("onlyoffice", "Save as")
+                });
+
+                $(dialog[0].querySelectorAll("p")).text(fileName + " " + t(OCA.Onlyoffice.AppName, "Convert to"));
+
+                var extension = getFileExtension(fileName);
+                var selectArray = dialog[0].querySelectorAll("select");
+                selectArray.forEach(selectNode => {
+                    selectNode.forEach(format => {
+                        if (extension === $(format).text()) {
+                            $(selectNode).removeClass("hidden");
+
+                            dialog[0].dataset.format = $(format).text();
+                            selectNode.onclick = function() {
+                                dialog[0].dataset.format = $("." + $(selectNode).attr("class") + " option:selected").text();
+                            }
+                        }
+                    });
+                });
+
+                $("body").append(dialog)
+
+                $("#saveas-picker").ocdialog({
+                    closeOnEscape: true,
+                    modal: true,
+                    buttons: [{
+                        text: t("core", "Cancel"),
+                        classes: "cancel",
+                        click: function() {
+                            $(this).ocdialog("close")
+                        }
+                    }, {
+                        text: t("onlyoffice", "Save"),
+                        classes: "primary",
+                        click: function() {
+                            var format = this.dataset.format;
+                            var fileId = context.fileInfoModel.id;
+                            OCA.Onlyoffice.saveAsFile(fileId, format);
+                            $(this).ocdialog("close")
+                        }
+                    }]
+                });
+            });
+    }
+
     OCA.Onlyoffice.GetSettings = function (callbackSettings) {
         if (OCA.Onlyoffice.setting.formats) {
 
@@ -257,6 +307,15 @@
                             actionHandler: OCA.Onlyoffice.FileConvertClick
                         });
                     }
+
+                    fileList.fileActions.registerAction({
+                        name: "onlyofficeSaveAs",
+                        displayName: t(OCA.Onlyoffice.AppName, "Save as"),
+                        mime: config.mime,
+                        permissions: ($("#isPublic").val() ? OC.PERMISSION_UPDATE : OC.PERMISSION_READ),
+                        iconClass: "icon-onlyoffice-saveas",
+                        actionHandler: OCA.Onlyoffice.FileSaveAsClick
+                    });
                 });
             }
 
@@ -319,6 +378,10 @@
         }
 
         OCA.Onlyoffice.OpenEditor(fileId, "", "", version)
+    };
+
+    OCA.Onlyoffice.saveAsFile = function (fileId, toExtension) {
+
     };
 
     OCA.Onlyoffice.bindVersionClick = function () {
