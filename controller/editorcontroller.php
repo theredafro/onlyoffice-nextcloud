@@ -23,6 +23,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\Template\PublicTemplateResponse;
 use OCP\AppFramework\QueryException;
 use OCP\Constants;
@@ -781,6 +782,62 @@ class EditorController extends Controller {
      */
     public function loader() {
         return new TemplateResponse($this->appName, "loader", [], "plain");
+    }
+
+    /**
+     * Save as method
+     * 
+     * @param int $fileId - file identifier
+     * @param string $toExtension - file extension to download
+     *
+     * @return DataDownloadResponse|TemplateResponse
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function saveas($fileId, $toExtension) {
+        $this->logger->debug("Save as: $fileId", ["app" => $this->appName]);
+        
+        $user = $this->userSession->getUser();
+        $userId = null;
+        if (!empty($user)) {
+            $userId = $user->getUID();
+        }
+
+        list ($file, $error, $share) = $this->getFile($userId, $fileId);
+
+        if (isset($error)) {
+            $this->logger->error("Save as: $fileId $error", ["app" => $this->appName]);
+            return $this->renderError($error);
+        }
+
+        $fileName = $file->getName();
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        $newFileUri = null;
+        $documentService = new DocumentService($this->trans, $this->config);
+        $key = $this->fileUtility->getKey($file);
+        $fileUrl = $this->getUrl($file, $user);
+        try {
+            $newFileUri = $documentService->GetConvertedUri($fileUrl, $ext, $toExtension, $key);
+        } catch (\Exception $e) {
+            $this->logger->logException($e, ["message" => "GetConvertedUri: " . $file->getId(), "app" => $this->appName]);
+            return $this->renderError($e->getMessage());
+        }
+
+        try {
+            $newData = $documentService->Request($newFileUri);
+        } catch (\Exception $e) {
+            $this->logger->logException($e, ["message" => "Failed to download converted file", "app" => $this->appName]);
+            return $this->renderError($this->trans->t("Failed to download converted file"));
+        }
+
+        $fileNameWithoutExt = substr($fileName, 0, strlen($fileName) - strlen($ext) - 1);
+        $newFileName = $fileNameWithoutExt . "." . $toExtension;
+
+        $formats = $this->config->FormatsSetting();
+
+        return new DataDownloadResponse($newData, $newFileName, $formats[$toExtension]["mime"]);
     }
 
     /**

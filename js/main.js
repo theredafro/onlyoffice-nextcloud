@@ -245,7 +245,12 @@
                         click: function() {
                             var format = this.dataset.format;
                             var fileId = context.fileInfoModel.id;
-                            OCA.Onlyoffice.saveAsFile(fileId, format);
+                            var saveAsLink = OC.generateUrl("apps/" + OCA.Onlyoffice.AppName + "/saveas?fileId={fileId}&toExtension={toExtension}",{
+                                fileId: fileId,
+                                toExtension: format
+                            });
+
+                            location.href = saveAsLink;
                             $(this).ocdialog("close")
                         }
                     }]
@@ -378,10 +383,6 @@
         }
 
         OCA.Onlyoffice.OpenEditor(fileId, "", "", version)
-    };
-
-    OCA.Onlyoffice.saveAsFile = function (fileId, toExtension) {
-
     };
 
     OCA.Onlyoffice.bindVersionClick = function () {
