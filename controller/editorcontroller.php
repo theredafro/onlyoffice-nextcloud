@@ -287,6 +287,32 @@ class EditorController extends Controller {
     }
 
     /**
+     * Get users
+     *
+     * @return array
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function users() {
+        $this->logger->debug("Search users", ["app" => $this->appName]);
+        $result =[];
+
+        $userId = $this->userSession->getUser()->getUID();
+        $users = $this->userManager->search("");
+        foreach ($users as $user) {
+            if ($user->getUID() != $userId) {
+                array_push($result, [
+                    "email" => $user->getUID(),
+                    "name" => $user->getDisplayName()
+                ]);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Conversion file to Office Open XML format
      *
      * @param integer $fileId - file identifier
