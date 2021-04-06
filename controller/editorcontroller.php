@@ -800,13 +800,15 @@ class EditorController extends Controller {
      * @param string $shareToken - access token
      * @param integer $version - file version
      * @param bool $inframe - open in frame
+     * @param string $actionType - anchor for file content
+     * @param string $actionData - anchor for file content
      *
      * @return TemplateResponse|RedirectResponse
      *
      * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function index($fileId, $filePath = null, $shareToken = null, $version = 0, $inframe = false) {
+    public function index($fileId, $filePath = null, $shareToken = null, $version = 0, $inframe = false, $actionType = null, $actionData = null) {
         $this->logger->debug("Open: $fileId ($version) $filePath ", ["app" => $this->appName]);
 
         $isLoggedIn = $this->userSession->isLoggedIn();
@@ -835,7 +837,9 @@ class EditorController extends Controller {
             "shareToken" => $shareToken,
             "directToken" => null,
             "version" => $version,
-            "inframe" => false
+            "inframe" => false,
+            "actionType" => $actionType,
+            "actionData" => $actionData
         ];
 
         $response = null;
@@ -911,13 +915,15 @@ class EditorController extends Controller {
      * @param integer $inframe - open in frame. 0 - no, 1 - yes, 2 - without goback for old editor (5.4)
      * @param bool $desktop - desktop label
      * @param string $guestName - nickname not logged user
+     * @param string $actionType - anchor for file content
+     * @param string $actionData - anchor for file content
      *
      * @return array
      *
      * @NoAdminRequired
      * @PublicPage
      */
-    public function config($fileId, $filePath = null, $shareToken = null, $directToken = null, $version = 0, $inframe = 0, $desktop = false, $guestName = null) {
+    public function config($fileId, $filePath = null, $shareToken = null, $directToken = null, $version = 0, $inframe = 0, $desktop = false, $guestName = null, $actionType = null, $actionData = null) {
 
         if (!empty($directToken)) {
             list ($directData, $error) = $this->crypt->ReadHash($directToken);
@@ -1118,6 +1124,17 @@ class EditorController extends Controller {
 
         if ($this->config->UseDemo()) {
             $params["editorConfig"]["tenant"] = $this->config->GetSystemValue("instanceid", true);
+        }
+
+        if ($actionType !== null && $actionData !== null) {
+            $actionLink = [
+                "action" => [
+                    "type" => $actionType,
+                    "data" => $actionData
+                ]
+            ];
+
+            $params["editorConfig"]["actionLink"] = $actionLink;
         }
 
         if (!empty($this->config->GetDocumentServerSecret())) {

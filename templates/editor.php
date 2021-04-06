@@ -33,6 +33,8 @@
         data-sharetoken="<?php p($_["shareToken"]) ?>"
         data-directtoken="<?php p($_["directToken"]) ?>"
         data-version="<?php p($_["version"]) ?>"
+        data-actiontype="<?php p($_["actionType"]) ?>"
+        data-actiondata="<?php p($_["actionData"]) ?>"
         data-inframe="<?php p($_["inframe"]) ?>"></div>
 
     <?php if (!empty($_["documentServerUrl"])) { ?>

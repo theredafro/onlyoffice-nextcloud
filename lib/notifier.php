@@ -150,7 +150,10 @@ class Notifier implements INotifier {
                 ]
             ]);
 
-        $editorLink = $this->urlGenerator->linkToRouteAbsolute($this->appName . ".editor.index", ["fileId" => $fileId, "actionLink" => $actionLink]);
+        $editorLink = $this->urlGenerator->linkToRouteAbsolute($this->appName . ".editor.index", ["fileId" => $fileId,
+                                                                                                    "actionType" => $actionLink["action"]["type"],
+                                                                                                    "actionData" => $actionLink["action"]["data"]]);
+
         $notification->setLink($editorLink);
 
         return $notification;

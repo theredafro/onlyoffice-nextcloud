@@ -39,6 +39,8 @@
         var directToken = $("#iframeEditor").data("directtoken");
         OCA.Onlyoffice.inframe = !!$("#iframeEditor").data("inframe");
         OCA.Onlyoffice.filePath = $("#iframeEditor").data("path");
+        OCA.Onlyoffice.actionType = $("#iframeEditor").data("actiontype");
+        OCA.Onlyoffice.actionData = $("#iframeEditor").data("actiondata");
         var guestName = localStorage.getItem("nick");
         if (!OCA.Onlyoffice.fileId && !OCA.Onlyoffice.shareToken && !directToken) {
             displayError(t(OCA.Onlyoffice.AppName, "FileId is empty"));
@@ -72,6 +74,10 @@
         }
         if (guestName) {
             params.push("guestName=" + encodeURIComponent(guestName));
+        }
+        if (OCA.Onlyoffice.actionType && OCA.Onlyoffice.actionData) {
+            params.push("actionType=" + encodeURIComponent(OCA.Onlyoffice.actionType));
+            params.push("actionData=" + encodeURIComponent(OCA.Onlyoffice.actionData));
         }
 
         if (OCA.Onlyoffice.inframe || directToken) {
