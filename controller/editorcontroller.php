@@ -303,13 +303,74 @@ class EditorController extends Controller {
         foreach ($users as $user) {
             if ($user->getUID() != $userId) {
                 array_push($result, [
-                    "email" => $user->getUID(),
+                    "email" => $user->getEMailAddress(),
                     "name" => $user->getDisplayName()
                 ]);
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Send notify about mention
+     *
+     * @param int $fileId - fileId
+     * @param array $actionLink - the anchor on target content
+     * @param string $comment - comment
+     * @param array $emails - emails array to whom to send notify
+     * 
+     * @return array
+     * 
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function mention($fileId, $actionLink, $comment, $emails) {
+        $recipientIds = [];
+
+        if (empty($emails)) {
+            return["error" => $this->trans->t("Failed to send notification")];
+        }
+
+        foreach ($emails as $email) {
+            $recipients = $this->userManager->getByEmail($email);
+            foreach($recipients as $recipient) {
+                if (!in_array($recipient->getUID(), $recipientIds)) {
+                    array_push($recipientIds, $recipient->getUID());
+                }
+            }
+        }
+
+        $user = $this->userSession->getUser();
+        $userId = null;
+        if (!empty($user)) {
+            $userId = $user->getUID();
+        }
+
+        list ($file, $error, $share) = $this->getFile($userId, $fileId);
+        if (isset($error)) {
+            $this->logger->error("Mention: $fileId $error", ["app" => $this->appName]);
+            return["error" => $this->trans->t("Failed to send notification")];
+        }
+
+        $notificationManager = \OC::$server->getNotificationManager();
+        $notification = $notificationManager->createNotification();
+        $notification->setApp($this->appName)
+            ->setDateTime(new \DateTime())
+            ->setObject("mention", $comment)
+            ->setSubject("mention_info", [
+                "notifierId" => $userId,
+                "fileId" => $fileId,
+                "actionLink" => $actionLink
+            ]);
+
+        foreach ($recipientIds as $recipientId) {
+            $notification->setUser($recipientId);
+
+            $notificationManager->notify($notification);
+        }
+
+        return["message" => $this->trans->t("Notification sent successfully")];
     }
 
     /**

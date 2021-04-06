@@ -36,6 +36,7 @@ use OCA\Onlyoffice\Crypt;
 use OCA\Onlyoffice\DirectEditor;
 use OCA\Onlyoffice\Hooks;
 use OCA\Onlyoffice\Preview;
+use OCA\Onlyoffice\Notifier;
 
 class Application extends App {
 
@@ -130,6 +131,9 @@ class Application extends App {
         $previewManager->registerProvider(Preview::getMimeTypeRegex(), function() use ($container) {
             return $container->query(Preview::class);
         });
+
+        $notificationManager = \OC::$server->getNotificationManager();
+        $notificationManager->registerNotifierService(Notifier::class);
 
         $container->registerService("L10N", function ($c) {
             return $c->query("ServerContainer")->getL10N($c->query("AppName"));

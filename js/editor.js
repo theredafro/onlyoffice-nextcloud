@@ -140,7 +140,8 @@
                         "onRequestHistory": OCA.Onlyoffice.onRequestHistory,
                         "onRequestHistoryData": OCA.Onlyoffice.onRequestHistoryData,
                         "onDocumentReady": OCA.Onlyoffice.onDocumentReady,
-                        "onRequestUsers": OCA.Onlyoffice.onRequestUsers
+                        "onRequestUsers": OCA.Onlyoffice.onRequestUsers,
+                        "onRequestSendNotify": OCA.Onlyoffice.onRequestSendNotify
                     };
 
                     if (!OCA.Onlyoffice.version) {
@@ -435,6 +436,31 @@
                 "users": response
             });
         });
+    };
+
+    OCA.Onlyoffice.onRequestSendNotify = function (event) {
+        var actionLink = event.data.actionLink;
+        var comment = event.data.message;
+        var emails = event.data.emails;
+
+        var pathname = $(location).attr("pathname").split("/");
+        var fileId = pathname[pathname.length - 1];
+
+        $.post(OC.generateUrl("apps/" + OCA.Onlyoffice.AppName + "/ajax/mention"),
+            {
+                fileId: fileId,
+                actionLink: actionLink,
+                comment: comment,
+                emails: emails
+            },
+            function onSuccess(response) {
+                if (response.error) {
+                    OCP.Toast.error(response.error);
+                    return;
+                }
+
+                OCP.Toast.success(response.message);
+            });
     };
 
     OCA.Onlyoffice.InitEditor();
