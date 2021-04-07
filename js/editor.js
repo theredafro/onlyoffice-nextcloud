@@ -145,9 +145,7 @@
                         "onDocumentStateChange": setPageTitle,
                         "onRequestHistory": OCA.Onlyoffice.onRequestHistory,
                         "onRequestHistoryData": OCA.Onlyoffice.onRequestHistoryData,
-                        "onDocumentReady": OCA.Onlyoffice.onDocumentReady,
-                        "onRequestUsers": OCA.Onlyoffice.onRequestUsers,
-                        "onRequestSendNotify": OCA.Onlyoffice.onRequestSendNotify
+                        "onDocumentReady": OCA.Onlyoffice.onDocumentReady
                     };
 
                     if (!OCA.Onlyoffice.version) {
@@ -166,6 +164,8 @@
                         config.events.onRequestInsertImage = OCA.Onlyoffice.onRequestInsertImage;
                         config.events.onRequestMailMergeRecipients = OCA.Onlyoffice.onRequestMailMergeRecipients;
                         config.events.onRequestCompareFile = OCA.Onlyoffice.onRequestCompareFile;
+                        config.events.onRequestUsers = OCA.Onlyoffice.onRequestUsers;
+                        config.events.onRequestSendNotify = OCA.Onlyoffice.onRequestSendNotify;
                     }
 
                     if (OCA.Onlyoffice.directEditor || OCA.Onlyoffice.inframe) {
