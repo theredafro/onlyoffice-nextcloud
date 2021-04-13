@@ -142,11 +142,16 @@ class Notifier implements INotifier {
 
         $notification->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath($this->appName, "app-dark.svg")))
             ->setParsedSubject($this->trans->t('%1$s mentioned you in the %2$s: "%3$s".', [$notifierName, $fileName, $notification->getObjectId()]))
-            ->setRichSubject($this->trans->t('{notifier} mentioned you in the %1$s: "%2$s".', [$fileName, $notification->getObjectId()]), [
+            ->setRichSubject($this->trans->t('{notifier} mentioned you in the {file}: "%1$s".', [$notification->getObjectId()]), [
                 "notifier" => [
                     "type" => "user",
                     "id" => $notifierId,
                     "name" => $notifierName
+                ],
+                "file" => [
+                    "type" => "highlight",
+                    "id" => $fileId,
+                    "name" => $fileName
                 ]
             ]);
 
