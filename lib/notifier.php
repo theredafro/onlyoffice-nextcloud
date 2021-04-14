@@ -27,6 +27,7 @@ use OCP\Notification\AlreadyProcessedException;
 use OCP\Notification\INotification;
 use OCP\Notification\INotifier;
 use OCP\Files\IRootFolder;
+use OCP\Share\IManager;
 
 class Notifier implements INotifier {
 
@@ -66,6 +67,13 @@ class Notifier implements INotifier {
     private $logger;
 
     /**
+     * Share manager
+     *
+     * @var IManager
+     */
+    private $shareManager;
+
+    /**
      * @param string $AppName - application name
      * @param IL10N $trans - l10n service
      * @param IURLGenerator $urlGenerator - url generator service
@@ -78,7 +86,8 @@ class Notifier implements INotifier {
                                     IURLGenerator $urlGenerator,
                                     ILogger $logger,
                                     IUserManager $userManager,
-                                    IRootFolder $root
+                                    IRootFolder $root,
+                                    IManager $shareManager
                                     ) {
         $this->appName = $appName;
         $this->trans = $trans;
@@ -86,6 +95,7 @@ class Notifier implements INotifier {
         $this->logger = $logger;
         $this->userManager = $userManager;
         $this->root = $root;
+        $this->shareManager = $shareManager;
     }
 
     /**
@@ -125,7 +135,7 @@ class Notifier implements INotifier {
         
         $files = [];
         try {
-            $files = $this->root->getUserFolder($notification->getUser())->getById($fileId);
+            $files = $this->root->getUserFolder($notifierId)->getById($fileId);
         } catch (\Exception $e) {
             $this->logger->logException($e, ["message" => "Notify prepate: $fileId", "app" => $this->appName]);
         }
@@ -135,7 +145,14 @@ class Notifier implements INotifier {
             throw new AlreadyProcessedException();
         }
 
-        $fileName = $files[0]->getName();
+        $file = $files[0];
+
+        $accessList = $this->shareManager->getAccessList($file);
+        if (!in_array($notification->getUser(), $accessList["users"])) {
+            throw new AlreadyProcessedException();
+        }
+
+        $fileName = $file->getName();
 
         $notifier = $this->userManager->get($notifierId);
         $notifierName = $notifier->getDisplayName();
