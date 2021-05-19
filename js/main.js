@@ -214,19 +214,25 @@
                 $(dialog[0].querySelectorAll("p")).text(fileName + " " + t(OCA.Onlyoffice.AppName, "Convert to"));
 
                 var extension = getFileExtension(fileName);
-                var selectArray = dialog[0].querySelectorAll("select");
-                selectArray.forEach(selectNode => {
-                    selectNode.forEach(format => {
-                        if (extension === $(format).text()) {
-                            $(selectNode).removeClass("hidden");
+                var selectNode = dialog[0].querySelectorAll("select")[0];
+                var optionNodeOrigin = selectNode.querySelectorAll("option")[0];
 
-                            dialog[0].dataset.format = $(format).text();
-                            selectNode.onclick = function() {
-                                dialog[0].dataset.format = $("." + $(selectNode).attr("class") + " option:selected").text();
-                            }
-                        }
-                    });
-                });
+                $(optionNodeOrigin).attr("data-value", extension);
+                $(optionNodeOrigin).text(t(OCA.Onlyoffice.AppName, "Origin format"));
+
+                dialog[0].dataset.format = extension;
+                selectNode.onclick = function() {
+                    dialog[0].dataset.format = $("#onlyoffice-saveas-select option:selected").attr("data-value");
+                }
+
+                OCA.Onlyoffice.setting.formats[extension].saveas.forEach(ext => {
+                    var optionNode = optionNodeOrigin.cloneNode(true);
+
+                    $(optionNode).attr("data-value", ext);
+                    $(optionNode).text(ext);
+
+                    selectNode.append(optionNode);
+                })
 
                 $("body").append(dialog)
 
@@ -313,14 +319,16 @@
                         });
                     }
 
-                    fileList.fileActions.registerAction({
-                        name: "onlyofficeSaveAs",
-                        displayName: t(OCA.Onlyoffice.AppName, "Save as"),
-                        mime: config.mime,
-                        permissions: ($("#isPublic").val() ? OC.PERMISSION_UPDATE : OC.PERMISSION_READ),
-                        iconClass: "icon-onlyoffice-saveas",
-                        actionHandler: OCA.Onlyoffice.FileSaveAsClick
-                    });
+                    if (config.saveas) {
+                        fileList.fileActions.registerAction({
+                            name: "onlyofficeSaveAs",
+                            displayName: t(OCA.Onlyoffice.AppName, "Save as"),
+                            mime: config.mime,
+                            permissions: ($("#isPublic").val() ? OC.PERMISSION_UPDATE : OC.PERMISSION_READ),
+                            iconClass: "icon-onlyoffice-saveas",
+                            actionHandler: OCA.Onlyoffice.FileSaveAsClick
+                        });
+                    }
                 });
             }
 
