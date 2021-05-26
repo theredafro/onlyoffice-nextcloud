@@ -145,6 +145,7 @@ class TemplateManager {
      */
     public static function GetMimeTemplate($type) {
         switch($type) {
+            case "text":
             case "document":
                 return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
             case "spreadsheet":
