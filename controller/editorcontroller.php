@@ -30,6 +30,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
+use OCP\Files\NotFoundException;
 use OCP\IL10N;
 use OCP\ILogger;
 use OCP\IRequest;
@@ -44,6 +45,7 @@ use OCP\Share\IManager;
 
 use OCA\Files\Helper;
 use OCA\Files_Versions\Versions\IVersionManager;
+use OCA\Files\Service\TagService;
 
 use OCA\Onlyoffice\AppConfig;
 use OCA\Onlyoffice\Crypt;
@@ -715,6 +717,52 @@ class EditorController extends Controller {
         }
 
         return $result;
+    }
+
+    /**
+     * Update favorite status
+     *
+     * @param string $fileId - file identifier
+     * @param bool $favorite - favorite status
+     *
+     * @return array
+     *
+     * @NoAdminRequired
+     */
+    public function favorite($fileId, $favorite) {
+        $user = $this->userSession->getUser();
+        $userId = null;
+        if (!empty($user)) {
+            $userId = $user->getUID();
+        }
+
+        list ($file, $error, $share) = $this->getFile($userId, $fileId);
+        if (isset($error)) {
+            $this->logger->error("Favorite: $fileId $error", ["app" => $this->appName]);
+            return ["error" => $error];
+        }
+
+        $userFolder = $this->root->getUserFolder($userId);
+        $filePath = $userFolder->getRelativePath($file->getPath());
+
+        $tags = [ITags::TAG_FAVORITE];
+        if (!$favorite) {
+            $currentTags = $this->tagManager->load("files")->getTagsForObjects([$fileId]);
+            $tags = array_diff($currentTags[$fileId], $tags);
+            if (is_null($tags)) {
+                $tags = [];
+            }
+        }
+
+        try {
+            \OC::$server->get(TagService::class)->updateFileTags($filePath, $tags);
+        } catch (NotFoundException $e) {
+            $this->logger->logException($e, ["message" => "favorite: $fileId", "app" => $this->appName]);
+            return ["error" => $this->trans->t("Invalid request")];
+        }
+
+        return [
+            ];
     }
 
     /**
